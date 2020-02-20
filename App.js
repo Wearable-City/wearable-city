@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Platform, StatusBar, StyleSheet, View, TextInput, Button } from "react-native";
+import {
+    Platform,
+    StatusBar,
+    StyleSheet,
+    View,
+    TextInput,
+    Button,
+    Alert
+} from "react-native";
 import { SplashScreen } from "expo";
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
@@ -127,7 +135,20 @@ export default function App(props) {
                 // After getting token, we need to persist the token using `AsyncStorage`
                 // In the example, we'll use a dummy token
 
-                dispatch({ type: "SIGN_IN", token: "dummy-auth-token" });
+                // dispatch({ type: "SIGN_IN", token: "dummy-auth-token" });
+                console.log(data);
+                let res = await fetch(
+                    `https://wearablecity.netlify.com/.netlify/functions/users-read-by-ringid?user=${data.username}`
+                );
+                let resData = await res.json();
+                console.log(resData);
+                if (!resData.length) {
+                    Alert.alert("login failed");
+                } else if (resData[0].data.userName === "test") {
+                    dispatch({ type: "SIGN_IN", token: "dummy-auth-token" });
+                } else {
+                    Alert.alert("login failed!");
+                }
             },
             signOut: () => dispatch({ type: "SIGN_OUT" }),
             signUp: async data => {
