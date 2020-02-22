@@ -16,7 +16,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import BottomTabNavigator from "./navigation/BottomTabNavigator";
 import useLinking from "./navigation/useLinking";
-import AsyncStorage from "react-native"; //"@react-native-community/async-storage";
+import { AsyncStorage } from "react-native"; //"@react-native-community/async-storage";
 //import SignInScreen from "./screens/SignInScreen";
 
 const Stack = createStackNavigator();
@@ -138,14 +138,15 @@ export default function App(props) {
                 // dispatch({ type: "SIGN_IN", token: "dummy-auth-token" });
                 console.log(data);
                 let res = await fetch(
-                    `https://wearablecity.netlify.com/.netlify/functions/users-read-by-ringid?user=${data.username}`
+                    `https://wearablecity.netlify.com/.netlify/functions/users-read-by-username?username=${data.username}`
                 );
                 let resData = await res.json();
                 console.log(resData);
                 if (!resData.length) {
                     Alert.alert("login failed");
-                } else if (resData[0].data.userName === "test") {
-                    dispatch({ type: "SIGN_IN", token: "dummy-auth-token" });
+                } else if (resData[0].data.password === data.password) {
+                    await AsyncStorage.setItem("userToken", resData[0].data.ringId);
+                    dispatch({ type: "SIGN_IN", token: resData[0].data.ringId });
                 } else {
                     Alert.alert("login failed!");
                 }
@@ -191,7 +192,7 @@ export default function App(props) {
                                 name="SignIn"
                                 component={SignInScreen}
                                 options={{
-                                    title: "Sign in",
+                                    title: "Wearable City - Sign in",
                                     // When logging out, a pop animation feels intuitive
                                     // You can remove this if you want the default 'push' animation
                                     animationTypeForReplace: state.isSignout
@@ -202,7 +203,11 @@ export default function App(props) {
                         ) : (
                             // User is signed in
                             //<Stack.Screen name="Home" component={HomeScreen} />
-                            <Stack.Screen name="Root" component={BottomTabNavigator} />
+                            <Stack.Screen
+                                name="Root"
+                                userToken={state.userToken}
+                                component={BottomTabNavigator}
+                            />
                         )}
                     </Stack.Navigator>
                 </AuthContext.Provider>
